@@ -1,0 +1,215 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package View_Controller;
+
+import Model.InhousePart;
+import Model.Inventory;
+import Model.OutsourcedPart;
+import Model.Part;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.stage.Stage;
+
+/**
+ * FXML Controller class
+ *
+ * @author Tivinia Tonga
+ * @version 14 February 2019
+ */
+public class AddPartController implements Initializable {
+
+    
+    @FXML
+    private ColumnConstraints addPartGridPane;
+
+    @FXML
+    private Label addPartTitle;
+
+    @FXML
+    private RadioButton inhouseRadioBtn;
+
+    @FXML
+    private ToggleGroup prop;
+
+    @FXML
+    private RadioButton outsourcedRadioBtn;
+
+    @FXML
+    private Label idLabel;
+
+    @FXML
+    private Label nameLabel;
+
+    @FXML
+    private Label invLabel;
+
+    @FXML
+    private Label priceLabel;
+
+    @FXML
+    private Label maxLabel;
+
+    @FXML
+    private Label minLabel;
+
+    @FXML
+    private Label machineLabel;
+
+    @FXML
+    private TextField maxTextField;
+
+    @FXML
+    private TextField idTextField;
+
+    @FXML
+    private TextField nameTextField;
+
+    @FXML
+    private TextField invTextField;
+
+    @FXML
+    private TextField priceTextField;
+
+    @FXML
+    private TextField minTextField;
+
+    @FXML
+    private TextField machineTextField;
+
+    @FXML
+    private Button saveBtn;
+
+    @FXML
+    private Button cancelBtn;
+    
+    private Inventory inventory;
+    private int nextPartID;
+    
+    public AddPartController(Inventory inventory)
+    {
+        this.inventory = inventory;
+        this.nextPartID = inventory.getPartsList().size() + 1;
+    }
+    
+    private void closeWindow()
+    {
+        Stage stage = (Stage) cancelBtn.getScene().getWindow();
+        stage.close();
+    }
+
+    @FXML
+    void cancelAddPart(ActionEvent event) throws IOException {
+        closeWindow();
+        mainScreen();
+    }
+
+    @FXML
+    void inhouseSelected(ActionEvent event) {
+        machineLabel.setText("Machine ID");
+        machineTextField.setText("Mach ID");
+    }
+
+    @FXML
+    void outsourcedSelected(ActionEvent event) {
+        machineLabel.setText("Company Name");
+        machineTextField.setText("Comp Nm");
+    }
+
+    @FXML
+    void saveAddPart(ActionEvent event) throws IOException {
+               
+        // There is no restriction issues
+        if (restrictInventory())
+        {
+            int max = Integer.parseInt(maxTextField.getText());
+            String name = nameTextField.getText();
+            int inStock = Integer.parseInt(invTextField.getText());
+            double price = Double.parseDouble(priceTextField.getText());
+            int min = Integer.parseInt(minTextField.getText());
+        
+            if (inhouseRadioBtn.isSelected())
+            {
+                Part temp = new InhousePart(nextPartID, name, price, inStock, min, max, Integer.parseInt(machineTextField.getText()));
+                inventory.addPart(temp);
+            }
+            else
+            {
+                Part temp = new OutsourcedPart(nextPartID, name, price, inStock, min, max, machineTextField.getText());
+                inventory.addPart(temp);
+            }
+        
+            closeWindow();
+            mainScreen();
+        }
+        else
+        {
+            // Let user update the info
+        }
+        
+                
+    }
+    
+    private boolean restrictInventory()
+    {
+        // Inventory is greater than max
+        if (Integer.parseInt(invTextField.getText()) > Integer.parseInt(maxTextField.getText()))
+        {
+            Alert alertPart = new Alert(Alert.AlertType.ERROR);
+            alertPart.setTitle("Inventory Too High");
+            alertPart.setContentText("Inventory number exceeds maximum. Please update.");
+            alertPart.showAndWait();
+            return false;
+        }
+        
+        // Inventory is less than min
+        if (Integer.parseInt(invTextField.getText()) < Integer.parseInt(minTextField.getText()))
+        {
+            Alert alertPart = new Alert(Alert.AlertType.ERROR);
+            alertPart.setTitle("Inventory Too Low");
+            alertPart.setContentText("Inventory number falls short of minimum. Please update.");
+            alertPart.showAndWait();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    private void mainScreen() throws IOException
+    {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/View_Controller/MainScreen.fxml"));
+        View_Controller.MainScreenController controller = new View_Controller.MainScreenController(inventory);
+        loader.setController(controller);
+        
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.show();
+    }
+    
+    /**
+     * Initializes the controller class.
+     */
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        idTextField.setText(nextPartID + "");
+    }    
+    
+}
